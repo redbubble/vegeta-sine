@@ -77,6 +77,8 @@ func main() {
 		log.Fatal(msg)
 	}
 
+	fmt.Fprintf(os.Stderr, "Config options:\n%#v\n", opts)
+
 	// These values are well-described at
 	// https://github.com/tsenart/vegeta/blob/d73edf2bc2663d83848da2a97a8401a7ed1440bc/lib/pacer.go#L101-L132
 	var pacer vegeta.SinePacer
