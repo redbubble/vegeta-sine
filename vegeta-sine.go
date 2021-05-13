@@ -99,9 +99,7 @@ func main() {
 		log.Fatal(msg)
 	}
 
-	duration := opts.duration * time.Second
-
-	fmt.Fprintf(os.Stderr, "🚀  Starting sine load test against %q for %v\n", opts.url, round(duration))
+	fmt.Fprintf(os.Stderr, "🚀  Starting sine load test against %q for %v\n", opts.url, round(opts.duration))
 
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
@@ -115,7 +113,7 @@ func main() {
 	var metrics vegeta.Metrics
 	startedAt := time.Now()
 
-	for res := range attacker.Attack(targeter, pacer, duration, "test name") {
+	for res := range attacker.Attack(targeter, pacer, opts.duration, "sine load") {
 		metrics.Add(res)
 		if err = enc.Encode(res); err != nil {
 			msg := fmt.Errorf("error during attack: %s", err)
