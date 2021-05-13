@@ -33,6 +33,10 @@ func round(d time.Duration) time.Duration {
 
 // paceOpts aggregates the pacing command line options
 type paceOpts struct {
+	period    time.Duration
+	mean      int
+	amplitude int
+	startAt   float64
 	url       string
 	duration  time.Duration
 	timeout   time.Duration
@@ -53,6 +57,10 @@ func main() {
 	// Parse the commandline options
 	opts := paceOpts{}
 	flag.StringVar(&opts.url, "url", "http://localhost:8080/", "The URL to attack")
+	flag.DurationVar(&opts.period, "period", 10*time.Minute, "Period of the sine wave")
+	flag.IntVar(&opts.mean, "mean", 2, "The Mean req/1s of the sine wave")
+	flag.IntVar(&opts.amplitude, "amplitude", 1, "The Amplitude in req/1s of the sine wave")
+	flag.Float64Var(&opts.startAt, "startAt", 0, "The phase at which to start the sine wave, in radians")
 	flag.DurationVar(&opts.duration, "duration", 0, "Duration of the test in seconds")
 	flag.DurationVar(&opts.timeout, "timeout", vegeta.DefaultTimeout, "Requests timeout")
 	flag.BoolVar(&opts.keepalive, "keepalive", true, "Use persistent connections")
@@ -71,18 +79,18 @@ func main() {
 
 	var pacer vegeta.SinePacer
 	pacer = vegeta.SinePacer{
-		Period: 5 * time.Minute,
+		Period: opts.period,
 		// The mid-point of the sine wave in freq-per-Duration,
 		// MUST BE > 0
 		Mean: vegeta.Rate{
-			Freq: 2,
+			Freq: opts.mean,
 			Per:  time.Second},
 		// The amplitude of the sine wave in freq-per-Duration,
 		// MUST NOT BE EQUAL TO OR LARGER THAN MEAN
 		Amp: vegeta.Rate{
-			Freq: 1,
+			Freq: opts.amplitude,
 			Per:  time.Second},
-		StartAt: 0,
+		StartAt: opts.startAt,
 	}
 
 	fmt.Fprintf(os.Stderr, "Using pacer: %v\n", pacer)
