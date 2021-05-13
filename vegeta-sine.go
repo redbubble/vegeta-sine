@@ -89,15 +89,15 @@ func main() {
 		StartAt: 0,
 	}
 
-	fmt.Printf("Using pacer: %v\n", pacer)
+	fmt.Fprintf(os.Stderr, "Using pacer: %v\n", pacer)
 	if invalid(pacer) {
-		msg := fmt.Errorf("sorry, that pacer is invalid.")
+		msg := fmt.Errorf("Sorry, your Sine pacer config is invalid. Mean must be positive, Amplitude must not be larger than Mean.")
 		log.Fatal(msg)
 	}
 
 	duration := opts.duration * time.Second
 
-	fmt.Printf("🚀  Starting sine load test against %q for %v\n", opts.url, round(duration))
+	fmt.Fprintf(os.Stderr, "🚀  Starting sine load test against %q for %v\n", opts.url, round(duration))
 
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
@@ -122,5 +122,5 @@ func main() {
 	reporter.Report(os.Stdout)
 
 	attackDuration := time.Since(startedAt)
-	fmt.Printf("✨  Variable load test against %q completed in %v\n", opts.url, round(attackDuration))
+	fmt.Fprintf(os.Stderr, "✨  Variable load test against %q completed in %v\n", opts.url, round(attackDuration))
 }
