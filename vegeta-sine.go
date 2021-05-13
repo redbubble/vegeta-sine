@@ -33,10 +33,12 @@ func round(d time.Duration) time.Duration {
 
 // paceOpts aggregates the pacing command line options
 type paceOpts struct {
-	url      string
-	pacer    string
-	pacing   string
-	duration time.Duration
+	url       string
+	pacer     string
+	pacing    string
+	duration  time.Duration
+	timeout   time.Duration
+	keepalive bool
 }
 
 // hitsPerNs returns the attack rate this ConstantPacer represents, in
@@ -55,6 +57,8 @@ func main() {
 	flag.StringVar(&opts.url, "url", "http://localhost:8080/", "The URL to attack")
 	flag.StringVar(&opts.pacing, "pacing", "", "String describing the pace")
 	flag.DurationVar(&opts.duration, "duration", 0, "Duration of the test in seconds.")
+	flag.DurationVar(&opts.timeout, "timeout", vegeta.DefaultTimeout, "Requests timeout")
+	flag.BoolVar(&opts.keepalive, "keepalive", true, "Use persistent connections")
 	flag.Parse()
 
 	if len(os.Args) == 1 {
@@ -103,7 +107,10 @@ func main() {
 		Method: "GET",
 		URL:    opts.url,
 	})
-	attacker := vegeta.NewAttacker()
+	attacker := vegeta.NewAttacker(
+		vegeta.KeepAlive(opts.keepalive),
+		vegeta.Timeout(opts.timeout),
+	)
 	enc := vegeta.NewEncoder(os.Stdout)
 	var metrics vegeta.Metrics
 	startedAt := time.Now()
