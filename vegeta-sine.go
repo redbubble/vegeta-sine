@@ -104,12 +104,16 @@ func main() {
 		URL:    opts.url,
 	})
 	attacker := vegeta.NewAttacker()
+	enc := vegeta.NewEncoder(os.Stdout)
 	var metrics vegeta.Metrics
 	startedAt := time.Now()
 
 	for res := range attacker.Attack(targeter, pacer, duration, "test name") {
 		metrics.Add(res)
-		// fmt.Printf("asdf, %v\n", res)
+		if err = enc.Encode(res); err != nil {
+			msg := fmt.Errorf("error during attack: %s", err)
+			log.Fatal(msg)
+		}
 	}
 
 	metrics.Close()
