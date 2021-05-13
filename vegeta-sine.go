@@ -34,8 +34,6 @@ func round(d time.Duration) time.Duration {
 // paceOpts aggregates the pacing command line options
 type paceOpts struct {
 	url       string
-	pacer     string
-	pacing    string
 	duration  time.Duration
 	timeout   time.Duration
 	keepalive bool
@@ -55,8 +53,7 @@ func main() {
 	// Parse the commandline options
 	opts := paceOpts{}
 	flag.StringVar(&opts.url, "url", "http://localhost:8080/", "The URL to attack")
-	flag.StringVar(&opts.pacing, "pacing", "", "String describing the pace")
-	flag.DurationVar(&opts.duration, "duration", 0, "Duration of the test in seconds.")
+	flag.DurationVar(&opts.duration, "duration", 0, "Duration of the test in seconds")
 	flag.DurationVar(&opts.timeout, "timeout", vegeta.DefaultTimeout, "Requests timeout")
 	flag.BoolVar(&opts.keepalive, "keepalive", true, "Use persistent connections")
 	flag.Parse()
@@ -69,11 +66,6 @@ func main() {
 	_, err := url.ParseRequestURI(opts.url)
 	if err != nil {
 		msg := fmt.Errorf("invalid URL %q: %s", opts.url, err)
-		log.Fatal(msg)
-	}
-
-	if opts.pacing != "" {
-		msg := fmt.Errorf("sorry, for now pacing is hard-coded")
 		log.Fatal(msg)
 	}
 
