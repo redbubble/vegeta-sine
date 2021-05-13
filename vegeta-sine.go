@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	vegeta "github.com/tsenart/vegeta/lib"
+	vegeta "github.com/tsenart/vegeta/v12/lib"
 )
 
 // Rounding support lifted from Vegeta reporters since it is private.
