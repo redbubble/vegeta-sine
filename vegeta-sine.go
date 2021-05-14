@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"time"
@@ -111,10 +112,15 @@ func main() {
 	}
 	fmt.Fprintf(os.Stderr, "🚀  Starting sine load test for %s\n", duration_text)
 
-	targeter := vegeta.NewStaticTargeter(vegeta.Target{
-		Method: "GET",
-		URL:    opts.url,
-	})
+	targeter := vegeta.NewJSONTargeter(os.Stdin, []byte{}, http.Header{})
+
+	targets, err := vegeta.ReadAllTargets(targeter)
+	if err != nil {
+		msg := fmt.Errorf("Couldn't figure out JSON targets from /dev/stdin: %s", err)
+		log.Fatal(msg)
+	}
+	targeter = vegeta.NewStaticTargeter(targets...)
+
 	attacker := vegeta.NewAttacker(
 		vegeta.KeepAlive(opts.keepalive),
 		vegeta.Timeout(opts.timeout),
