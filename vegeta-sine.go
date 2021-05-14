@@ -103,7 +103,13 @@ func main() {
 		log.Fatal(msg)
 	}
 
-	fmt.Fprintf(os.Stderr, "🚀  Starting sine load test against %q for %v\n", opts.url, round(opts.duration))
+	var duration_text string
+	if opts.duration == 0 {
+		duration_text = "infinity"
+	} else {
+		duration_text = fmt.Sprintf("%v", round(opts.duration))
+	}
+	fmt.Fprintf(os.Stderr, "🚀  Starting sine load test for %s\n", duration_text)
 
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
