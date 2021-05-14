@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -38,7 +37,6 @@ type paceOpts struct {
 	mean      int
 	amplitude int
 	startAt   float64
-	url       string
 	duration  time.Duration
 	timeout   time.Duration
 	keepalive bool
@@ -57,7 +55,6 @@ func invalid(sp vegeta.SinePacer) bool {
 func main() {
 	// Parse the commandline options
 	opts := paceOpts{}
-	flag.StringVar(&opts.url, "url", "http://localhost:8080/", "The URL to attack")
 	flag.DurationVar(&opts.period, "period", 10*time.Minute, "Period of the sine wave")
 	flag.IntVar(&opts.mean, "mean", 2, "The Mean req/1s of the sine wave")
 	flag.IntVar(&opts.amplitude, "amplitude", 1, "The Amplitude in req/1s of the sine wave")
@@ -67,18 +64,7 @@ func main() {
 	flag.BoolVar(&opts.keepalive, "keepalive", true, "Use persistent connections")
 	flag.Parse()
 
-	if len(os.Args) == 1 {
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	_, err := url.ParseRequestURI(opts.url)
-	if err != nil {
-		msg := fmt.Errorf("invalid URL %q: %s", opts.url, err)
-		log.Fatal(msg)
-	}
-
-	fmt.Fprintf(os.Stderr, "Config options:\n%#v\n", opts)
+	fmt.Fprintf(os.Stderr, "Options: %#v\n", opts)
 
 	// These values are well-described at
 	// https://github.com/tsenart/vegeta/blob/d73edf2bc2663d83848da2a97a8401a7ed1440bc/lib/pacer.go#L101-L132
@@ -110,10 +96,18 @@ func main() {
 	} else {
 		duration_text = fmt.Sprintf("%v", round(opts.duration))
 	}
-	fmt.Fprintf(os.Stderr, "🚀  Starting sine load test for %s\n", duration_text)
 
 	targeter := vegeta.NewJSONTargeter(os.Stdin, []byte{}, http.Header{})
 
+	// Let's check if there's anything on os.Stdin - otherwise it'll
+	// just hang, waiting for an EOF.
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) != 0 {
+		msg := fmt.Errorf("Please provide targets on /dev/stdin, in JSON format.")
+		log.Fatal(msg)
+	}
+
+	// Eagerly read all targets from os.Stdin.
 	targets, err := vegeta.ReadAllTargets(targeter)
 	if err != nil {
 		msg := fmt.Errorf("Couldn't figure out JSON targets from /dev/stdin: %s", err)
@@ -127,6 +121,7 @@ func main() {
 	)
 	enc := vegeta.NewEncoder(os.Stdout)
 	var metrics vegeta.Metrics
+	fmt.Fprintf(os.Stderr, "🚀  Starting sine load test for %s\n", duration_text)
 	startedAt := time.Now()
 
 	for res := range attacker.Attack(targeter, pacer, opts.duration, "sine load") {
@@ -143,5 +138,5 @@ func main() {
 	reporter.Report(os.Stdout)
 
 	attackDuration := time.Since(startedAt)
-	fmt.Fprintf(os.Stderr, "✨  Variable load test against %q completed in %v\n", opts.url, round(attackDuration))
+	fmt.Fprintf(os.Stderr, "✨  Variable load test completed in %v\n", round(attackDuration))
 }
