@@ -3,6 +3,11 @@
 For those times when you want to hit a service hard, and then you don't, and then you do.  Et
 cetera.  Useful for seeing if autoscaling is working as it should.
 
+Here's a picture of the requests per second as two instances of `vegeta-sine` hit a service with
+mean and amplitude of 15±5/s and 10±5/s respectively.
+
+![Example of attack load varying as a sine curve](/img/load-graph.png)
+
 ## Building
 
 ```
